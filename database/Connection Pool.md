@@ -4,7 +4,7 @@
 
 
 
-![three_handshaking](C:\Users\tax94\Desktop\F-lab\blog\performance_tuning\three_handshaking.PNG)
+![three_handshaking](https://user-images.githubusercontent.com/54772162/103903326-1dd1a480-513f-11eb-85f4-910a857b5da1.PNG)
 
  3-way-handshaking은 3번의 패킷 교환을 통해 소켓을 형성하고 통신을 준비하는 과정을 의미하는데 이 과정이 쿼리를 요청할 때마다 반복적으로 실행된다면 이 또한 네트워크 구간에서 병목의 원인이 될 수 있습니다.
 
@@ -51,21 +51,17 @@
 
 > 우아한 형제들 블로그 : https://woowabros.github.io/experience/2020/02/06/hikaricp-avoid-dead-lock.html
 
-![HikariCP_logic_success](C:\Users\tax94\Desktop\F-lab\blog\performance_tuning\HikariCP_logic_success.PNG)
+![HikariCP_logic_success](https://user-images.githubusercontent.com/54772162/103903409-3215a180-513f-11eb-9146-dcbc39bc3a18.PNG)
 
 
 
  그림에서 볼 수 있듯이 Thread가 Connection을 요청하면 Connection Pool의 각자의 방식에 따라 유휴 Connection을 찾아서 반환합니다. Hikari CP의 경우, 이전에 사용했던 Connection이 존재하는지 확인하고, 이를 우선적으로 반환하는 특징을 갖고 있습니다. 
 
-
-
-![wait_connection](C:\Users\tax94\Desktop\F-lab\blog\performance_tuning\wait_connection.PNG)
+![wait_connection](https://user-images.githubusercontent.com/54772162/103903459-422d8100-513f-11eb-9cf8-58b2d3c036f8.PNG)
 
  만약에 가능한 Connection이 존재하지 않으면 HandOffQueue를 Polling하면서 다른 Thread가 Connection을 반납하기를 기다립니다. 이를 지정한 TimeOut 시간까지 대기하다가 시간이 만료되면 Exception을 던집니다.
 
-
-
-![return_connection](C:\Users\tax94\Desktop\F-lab\blog\performance_tuning\return_connection.PNG)
+![return_connection](https://user-images.githubusercontent.com/54772162/103903516-55d8e780-513f-11eb-8fb7-596cda4c8163.PNG)
 
  최종적으로 사용한 Connection을 반납하면 Connection Pool이 사용내역을 Connection 사용 내역을 기록하고, 반납된 Connection에 반납된 Connection을 삽입합니다. 이를 통해 HandOffQueue를 Polling 하던 Thread는 Connection을 획득하고 작업을 이어나갈 수 있게 됩니다.
 
