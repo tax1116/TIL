@@ -68,3 +68,24 @@
 
 
  이렇게 Thread들은 트랜잭션을 처리하기 위해서 Connection을 획득하고, 이를 반납하므로써 반복적인 Connection 생성을 줄일 수 있었습니다.
+ 
+
+## Connection 개수가 늘어나면 성능은 무조건 좋아질까요?
+
+ WAS에서 Connection을 사용하는 주체는 Thread입니다. 그렇다면 Thread Pool의 크기보다 Connection Pool의 크기가 크면 어떨까요? 
+ 
+ Thread Pool에서 트랜잭션을 처리하는 Thread가 사용하는 Connection 외에  남는 Connection은 실질적으로 메모리 공간만 차지하게 됩니다. 
+
+ 그럼 Thread Pool의 크기와 Connection Pool의 크기를 둘 다 늘려주면 되지 않을까? 라고 생각하실 수 있습니다. 하지만 Thread의 증가는 Context Switching으로 인한 한계가 존재하고, Connection Pool을 늘려서 많은 Thread를 받았더라도 다양한 원인이 성능 저하를 일으키게 됩니다.
+
+ 먼저, Disk 경합 측면에서 성능적인 한계가 존재합니다. 데이터베이스는 하드 디스크 하나당 하나의 I/O를 처리하기 때문에 Blocking이 발생하게 됩니다. SSD를 사용하면 일부 병렬 처리가 가능하지만 이 또한 한계가 존재합니다. 즉, 특정 시점부터는 성능적인 증가가 Disk 병목으로 인해 미비해집니다.
+
+ 다음은 데이터베이스에서도 Context Switiching으로 인한 성능적인 한계가 존재합니다. 
+
+ Context Switching에 대해 간단히 살펴보면 우리는 멀티 스레드 환경에서 CPU가 수 십, 수 백 개의 Thread를 동시에 실행할 수 있다고 알고 있습니다. 하지만, 이는 CPU의 속도가 엄청나게 빨라서 동시에 사용되는 것 처럼 보이는 것이고, 실제 CPU 코어는 한 번에 Thread 하나의 작업만 처리할 수 있습니다. 다음 Thread의 작업을 수행하기 위해서 Context Switching이 일어나는데 이 순간 작업에 필요한 Thread의 Stack 영역 데이터를 로드하는 등 추가적인 작업이 필요하기 때문에 오버헤드가 발생하게 됩니다. 그러므로 이상적인 Thread의 수는 CPU의 코어 수와 동일할 때, Context Switching이 일어나지 않으므로 가장 빠른 성능을 보입니다.
+
+ 데이터베이스 입장에서 Connection은 Thread와 어느정도 일치한다고 볼 수 있습니다. Connection이 많다는 의미는 데이터베이스 서버가 Thread를 많이 사용한다는 것을 의미하고, 이에 따라 Context Switching으로 인한 오버헤드가 더 많이 발생하기 때문에 Connection Pool을 아무리 늘리더라도 성능적인 한계가 존재합니다.
+ 
+ ### 참고
+ 
+> https://wiki.postgresql.org/wiki/Number_Of_Database_Connections
